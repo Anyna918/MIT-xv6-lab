@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #!/usr/bin/env python
+=======
+#!/usr/bin/env python3
+>>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 
 import re
 from gradelib import *
@@ -11,7 +15,12 @@ def test_trace_32_grep():
         'trace 32 grep hello README'
     ]))
     r.match('^\\d+: syscall read -> 1023')
+<<<<<<< HEAD
     r.match('^\\d+: syscall read -> 966')
+=======
+    r.match('^\\d+: syscall read -> 968')
+    r.match('^\\d+: syscall read -> 235')
+>>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
     r.match('^\\d+: syscall read -> 0')
 
 @test(5, "trace all grep")
@@ -23,7 +32,12 @@ def test_trace_all_grep():
     r.match('^\\d+: syscall exec -> 3')
     r.match('^\\d+: syscall open -> 3')
     r.match('^\\d+: syscall read -> 1023')
+<<<<<<< HEAD
     r.match('^\\d+: syscall read -> 966')
+=======
+    r.match('^\\d+: syscall read -> 968')
+    r.match('^\\d+: syscall read -> 235')
+>>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
     r.match('^\\d+: syscall read -> 0')
     r.match('^\\d+: syscall close -> 0')
 
