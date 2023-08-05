@@ -1,10 +1,6 @@
 
 # To compile and run with a lab solution, set the lab name in lab.mk
-<<<<<<< HEAD
 # (e.g., LB=util).  Run make grade to test solution with the lab's
-=======
-# (e.g., LAB=util).  Run make grade to test solution with the lab's
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 # grade script (e.g., grade-lab-util).
 
 -include conf/lab.mk
@@ -14,7 +10,12 @@ U=user
 
 OBJS = \
   $K/entry.o \
+  $K/start.o \
+  $K/console.o \
+  $K/printf.o \
+  $K/uart.o \
   $K/kalloc.o \
+  $K/spinlock.o \
   $K/string.o \
   $K/main.o \
   $K/vm.o \
@@ -39,39 +40,6 @@ OBJS = \
 ifeq ($(LAB),pgtbl)
 OBJS += $K/vmcopyin.o
 endif
-
-OBJS_KCSAN = \
-  $K/start.o \
-  $K/console.o \
-  $K/printf.o \
-  $K/uart.o \
-  $K/spinlock.o
-
-ifdef KCSAN
-OBJS_KCSAN += \
-	$K/kcsan.o
-endif
-
-ifeq ($(LAB),pgtbl)
-OBJS += \
-	$K/vmcopyin.o
-endif
-
-ifeq ($(LAB),$(filter $(LAB), pgtbl lock))
-OBJS += \
-	$K/stats.o\
-	$K/sprintf.o
-endif
-
-
-ifeq ($(LAB),net)
-OBJS += \
-	$K/e1000.o \
-	$K/net.o \
-	$K/sysnet.o \
-	$K/pci.o
-endif
-
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -103,30 +71,14 @@ CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb
 
 ifdef LAB
 LABUPPER = $(shell echo $(LAB) | tr a-z A-Z)
-<<<<<<< HEAD
 CFLAGS += -DSOL_$(LABUPPER)
 endif
 
-=======
-XCFLAGS += -DSOL_$(LABUPPER) -DLAB_$(LABUPPER)
-endif
-
-CFLAGS += $(XCFLAGS)
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
 CFLAGS += -I.
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
-
-ifeq ($(LAB),net)
-CFLAGS += -DNET_TESTS_PORT=$(SERVERPORT)
-endif
-
-ifdef KCSAN
-CFLAGS += -DKCSAN
-KCSANFLAG = -fsanitize=thread
-endif
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
@@ -138,16 +90,10 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
-$K/kernel: $(OBJS) $(OBJS_KCSAN) $K/kernel.ld $U/initcode
-	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) $(OBJS_KCSAN)
+$K/kernel: $(OBJS) $K/kernel.ld $U/initcode
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
 	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
-
-$(OBJS): EXTRAFLAG := $(KCSANFLAG)
-
-$K/%.o: $K/%.c
-	$(CC) $(CFLAGS) $(EXTRAFLAG) -c -o $@ $<
-
 
 $U/initcode: $U/initcode.S
 	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c $U/initcode.S -o $U/initcode.o
@@ -159,10 +105,6 @@ tags: $(OBJS) _init
 	etags *.S *.c
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
-
-ifeq ($(LAB),$(filter $(LAB), pgtbl lock))
-ULIB += $U/statistics.o
-endif
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -182,7 +124,7 @@ $U/_forktest: $U/forktest.o $(ULIB)
 	$(OBJDUMP) -S $U/_forktest > $U/forktest.asm
 
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
-	gcc $(XCFLAGS) -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
+	gcc -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
@@ -212,24 +154,10 @@ UPROGS=\
 
 
 
-<<<<<<< HEAD
 ifeq ($(LAB),trap)
 UPROGS += \
 	$U/_call\
 	$U/_alarmtest
-=======
-
-
-ifeq ($(LAB),$(filter $(LAB), pgtbl lock))
-UPROGS += \
-	$U/_stats
-endif
-
-ifeq ($(LAB),traps)
-UPROGS += \
-	$U/_call\
-	$U/_bttest
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 endif
 
 ifeq ($(LAB),lazy)
@@ -242,54 +170,11 @@ UPROGS += \
 	$U/_cowtest
 endif
 
-<<<<<<< HEAD
-=======
-ifeq ($(LAB),thread)
-UPROGS += \
-	$U/_uthread
-
-$U/uthread_switch.o : $U/uthread_switch.S
-	$(CC) $(CFLAGS) -c -o $U/uthread_switch.o $U/uthread_switch.S
-
-$U/_uthread: $U/uthread.o $U/uthread_switch.o $(ULIB)
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_uthread $U/uthread.o $U/uthread_switch.o $(ULIB)
-	$(OBJDUMP) -S $U/_uthread > $U/uthread.asm
-
-ph: notxv6/ph.c
-	gcc -o ph -g -O2 $(XCFLAGS) notxv6/ph.c -pthread
-
-barrier: notxv6/barrier.c
-	gcc -o barrier -g -O2 $(XCFLAGS) notxv6/barrier.c -pthread
-endif
-
-ifeq ($(LAB),lock)
-UPROGS += \
-	$U/_kalloctest\
-	$U/_bcachetest
-endif
-
-ifeq ($(LAB),fs)
-UPROGS += \
-	$U/_bigfile
-endif
-
-
-
-ifeq ($(LAB),net)
-UPROGS += \
-	$U/_nettests
-endif
-
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 UEXTRA=
 ifeq ($(LAB),util)
 	UEXTRA += user/xargstest.sh
 endif
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 fs.img: mkfs/mkfs README $(UEXTRA) $(UPROGS)
 	mkfs/mkfs fs.img README $(UEXTRA) $(UPROGS)
 
@@ -301,8 +186,7 @@ clean:
 	$U/initcode $U/initcode.out $K/kernel fs.img \
 	mkfs/mkfs .gdbinit \
         $U/usys.S \
-	$(UPROGS) \
-	ph barrier
+	$(UPROGS)
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
@@ -313,20 +197,10 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 3
 endif
-ifeq ($(LAB),fs)
-CPUS := 1
-endif
-
-FWDPORT = $(shell expr `id -u` % 5000 + 25999)
 
 QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
-
-ifeq ($(LAB),net)
-QEMUOPTS += -netdev user,id=net0,hostfwd=udp::$(FWDPORT)-:2000 -object filter-dump,id=net0,netdev=net0,file=packets.pcap
-QEMUOPTS += -device e1000,netdev=net0,bus=pcie.0
-endif
 
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
@@ -338,20 +212,6 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
-<<<<<<< HEAD
-=======
-ifeq ($(LAB),net)
-# try to generate a unique port for the echo server
-SERVERPORT = $(shell expr `id -u` % 5000 + 25099)
-
-server:
-	python3 server.py $(SERVERPORT)
-
-ping:
-	python3 ping.py $(FWDPORT)
-endif
-
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 ##
 ##  FOR testing lab grading script
 ##
@@ -374,11 +234,7 @@ grade:
 ##
 
 
-<<<<<<< HEAD
 WEBSUB := https://6828.scripts.mit.edu/2020/handin.py
-=======
-WEBSUB := https://6828.scripts.mit.edu/2021/handin.py
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 
 handin: tarball-pref myapi.key
 	@SUF=$(LAB); \
@@ -410,11 +266,7 @@ handin-check:
 		test "$$r" = y; \
 	fi
 
-<<<<<<< HEAD
 UPSTREAM := $(shell git remote -v | grep -m 1 "xv6-labs-2020" | awk '{split($$0,a," "); print a[1]}')
-=======
-UPSTREAM := $(shell git remote -v | grep -m 1 "xv6-labs-2021" | awk '{split($$0,a," "); print a[1]}')
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 
 tarball: handin-check
 	git archive --format=tar HEAD | gzip > lab-$(LAB)-handin.tar.gz

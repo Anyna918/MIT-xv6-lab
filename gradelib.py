@@ -200,11 +200,7 @@ def assert_lines_match(text, *regexps, **kw):
 # Utilities
 #
 
-<<<<<<< HEAD
 __all__ += ["make", "maybe_unlink", "reset_fs", "color", "random_str", "check_time"]
-=======
-__all__ += ["make", "maybe_unlink", "reset_fs", "color", "random_str", "check_time", "check_answers"]
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 
 MAKE_TIMESTAMP = 0
 
@@ -262,18 +258,6 @@ def check_time():
     except IOError:
         raise AssertionError('Cannot read time.txt')
 
-<<<<<<< HEAD
-=======
-def check_answers(file, n=10):
-    try:
-        with open(file) as f:
-            d = f.read().strip()
-            if len(d) < n:
-                raise AssertionError('%s does not seem to contain enough text' % file)
-    except IOError:
-        raise AssertionError('Cannot read %s' % file)
-
->>>>>>> 84c22a4681e2523b786a9e5cbac2523139bb7c8f
 
 ##################################################################
 # Controllers
